@@ -1,6 +1,7 @@
 import { generateToken } from "../lib/utils.js";
 import User from "../models/user.models.js";
 import bcrypt from "bcryptjs";
+import cloudinary from "../lib/cloudinary.js";
 
 
 export const signUp= async (req, res) => {
@@ -84,6 +85,51 @@ export const login= async (req, res) => {
         });
     } catch (error) {
         return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+            error: error.message,
+        });
+    }
+}
+
+// controller to check if the user is authenticated
+export const checkAuth= async (req, res) => {
+    res.json({
+        success: true,
+        userData: req.user, // req.user is set by the protectedRoute middleware
+        message: "User is authenticated",
+    }); 
+}
+
+// controller to update the user profile details
+export const updateProfile= async (req, res) => {
+    try {
+        const { fullName, prfilePic, bio } = req.body;
+        const userId = req.user._id; // req.user is set by the protectedRoute middleware
+
+        let updatedUser;
+        if(!prfilePic){
+            updatedUser = await User.findByIdAndUpdate(
+                userId,
+                { fullName, bio },
+                { new: true }
+            );
+        } else {
+            const upload=await cloudinary.uploader.upload(prfilePic);
+            updatedUser = await User.findByIdAndUpdate(
+                userId,
+                { fullName, bio, prfilePic: upload.secure_url },
+                { new: true }
+            );
+        }
+
+        res.json({
+            success: true,
+            userData: updatedUser,
+            message: "Profile updated successfully",
+        });
+    } catch (error) {
+        res.status(500).json({
             success: false,
             message: "Internal server error",
             error: error.message,
