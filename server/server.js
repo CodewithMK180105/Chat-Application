@@ -11,6 +11,31 @@ import { Server } from "socket.io";
 const app=express();
 const server=http.createServer(app); // we are using the http server because we need to use socket.io and socket.io supports only http server
 
+// Initialize socket.io server
+export const io= new Server(server, {
+  cors: {origin: "*"}
+});
+
+// Store online users
+export const userSocketMap= {}; // {userId: sockedId}
+
+// Socket.io connection handler
+io.on("connection", (socket)=> {
+  const userId=socket.handshake.query.userId;
+  console.log("User connected ", userId);
+
+  if(userId) userSocketMap[userId]=socket.id;
+
+  // Emit online users to all the connected clients
+  io.emit("getOnlineUsers", Object.keys(userSocketMap));
+
+  socket.on("disconnect", ()=>{
+    console.log("User disconnected ", userId);
+    delete userSocketMap[userId];
+    io.emit("getOnlineUsers", Object.keys(userSocketMap));
+  })
+})
+
 
 // Middlewares setup
 app.use(express.json({limit: "4mb"})); // Limit the request body size to 4mb, express.json() because all the request to be passed to server should be in json format
