@@ -4,7 +4,7 @@ import toast from "react-hot-toast";
 import { io } from "socket.io-client";
 
 
-const backendUrl= import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+const backendUrl= import.meta.env.VITE_BACKEND_URL || "http://localhost:5000";
 axios.defaults.baseURL=backendUrl;
 
 export const AuthContext =createContext();
@@ -17,18 +17,31 @@ export const AuthProvider = ({children})=>{
     const [socket, setSocket] = useState(null);
 
     // Check if the user is authenticated and if so, set the user data and connect the socket
-    const checkAuth = async () => {
-        try {
-            const {data}=await axios.get('/api/auth/check');
-            if(data.success){
-                setAuthUser(data.user);
-                connectSocket(data.user);
-            }
-        } catch (error) {
-            console.error("Error checking authentication:", error);
-            toast.error(error.messsage || "Authentication check failed");
+    const checkAuth = async (showToast = true) => {
+    try {
+      const { data } = await axios.get('/api/auth/check');
+      if (data.success) {
+        setAuthUser(data.user);
+        connectSocket(data.user);
+      } else {
+        localStorage.removeItem('token');
+        setToken(null);
+        setAuthUser(null);
+        if (showToast) {
+          toast.error(data.message || 'Authentication check failed');
         }
+      }
+    } catch (error) {
+      localStorage.removeItem('token');
+      setToken(null);
+      setAuthUser(null);
+      if (showToast && error.code !== 'ERR_NETWORK') {
+        toast.error(error.message || 'Authentication check failed');
+      } else if (showToast) {
+        console.error('Network error during auth check:', error);
+      }
     }
+  };
 
     // Login function to hanlde the user authentication and socket connection
     const login= async(state, credentials)=>{ // state is used to determine the type of login (e.g., 'login' or 'register')
