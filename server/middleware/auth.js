@@ -9,7 +9,7 @@ export const protectedRoute= async (req, res, next) => {
 
         const decoded=jwt.verify(token, process.env.JWT_SECRET); // Verify the token using JWT secret
 
-        const user=await User.findbyId(decoded.userId).select("-password"); // Find the user by token
+        const user=await User.findById(decoded.userId).select("-password"); // Find the user by token
 
         if(!user) {
             return res.status(401).json({

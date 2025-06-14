@@ -37,7 +37,7 @@ export const signUp= async (req, res) => {
 
         return res.json({
             success: true,
-            userData: newUser,
+            user: newUser,
             token,
             message: "User created successfully",
         });
@@ -79,7 +79,7 @@ export const login= async (req, res) => {
         const token = generateToken(user._id);
         return res.json({
             success: true,
-            userData: user,
+            user,
             token,
             message: "Login successful",
         });
@@ -96,7 +96,7 @@ export const login= async (req, res) => {
 export const checkAuth= async (req, res) => {
     res.json({
         success: true,
-        userData: req.user, // req.user is set by the protectedRoute middleware
+        user: req.user, // req.user is set by the protectedRoute middleware
         message: "User is authenticated",
     }); 
 }
@@ -104,28 +104,28 @@ export const checkAuth= async (req, res) => {
 // controller to update the user profile details
 export const updateProfile= async (req, res) => {
     try {
-        const { fullName, prfilePic, bio } = req.body;
+        const { fullName, profilePic, bio } = req.body;
         const userId = req.user._id; // req.user is set by the protectedRoute middleware
 
         let updatedUser;
-        if(!prfilePic){
+        if(!profilePic){
             updatedUser = await User.findByIdAndUpdate(
                 userId,
                 { fullName, bio },
                 { new: true }
             );
         } else {
-            const upload=await cloudinary.uploader.upload(prfilePic);
+            const upload=await cloudinary.uploader.upload(profilePic);
             updatedUser = await User.findByIdAndUpdate(
                 userId,
-                { fullName, bio, prfilePic: upload.secure_url },
+                { fullName, bio, profilePic: upload.secure_url },
                 { new: true }
             );
         }
 
         res.json({
             success: true,
-            userData: updatedUser,
+            user: updatedUser,
             message: "Profile updated successfully",
         });
     } catch (error) {
