@@ -39,19 +39,21 @@ export const ChatProvider=({children})=>{
         }
     }
 
-    const sendMessage= async(messageData)=>{
-        try {
-            const {response}=await axios.post(`/api/messages/send/${selectedUser._id}`, messageData);
-            if(response.success){
-                setMessages((prevMessages)=>[...prevMessages, response.newMessage]);
-            } else{
-                toast.error(response.message);
-            }
-        } catch (error) {
-            console.log();
-            toast(error.message);
-        }
+    const sendMessage = async (messageData) => {
+  try {
+    const { data } = await axios.post(`/api/messages/send/${selectedUser._id}`, messageData);
+
+    if (data.success) {
+      setMessages((prevMessages) => [...prevMessages, data.newMessage]);
+    } else {
+      toast.error(data.message);
     }
+  } catch (error) {
+    console.error("Error sending message:", error);
+    toast.error(error?.response?.data?.message || "Failed to send message");
+  }
+};
+
 
     const subscribeToMessages=()=>{
         if(!socket) return;
@@ -83,7 +85,7 @@ export const ChatProvider=({children})=>{
         users,
         selectedUser,
         getUsers,
-        setMessages,
+        getMessages,
         sendMessage,
         setSelectedUser,
         unseenMessages,
