@@ -4,7 +4,7 @@ import User from "../models/user.models.js";
 import { io, userSocketMap } from "../server.js";
 
 
-export const getUsersForSidebar= async()=>{
+export const getUsersForSidebar= async(req, res)=>{
     try {
         const userId = req.user._id; // Assuming req.user is set by the protectedRoute middleware
         const filteredUsers = await User.find({ _id: { $ne: userId } }).select("-password").sort({ createdAt: -1 });
